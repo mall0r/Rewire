@@ -7,4 +7,4 @@ config section. For Proton, keeps the scaffolding and replaces the executable.
 from .cli import main
 
 __all__ = ["main"]
-__version__ = "0.1.0"
+__version__ = "0.1.1"

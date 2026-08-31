@@ -8,6 +8,9 @@ dist/
 venv/
 .pytest_cache/
 .coverage
+.pkgbuild/
+pkg/
+*.tar.gz
 .PKGBUILD.tmp
 *.pkg.tar.*
 *.deb

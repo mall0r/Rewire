@@ -7,8 +7,9 @@ name = "rewire"
 dynamic = ["version"]
 description = "Intercepts Steam's %command% and replaces it with a configured command"
 readme = "README.md"
-requires-python = ">=3.10"
-license = { text = "MIT" }
+requires-python = ">=3.14"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
 keywords = ["steam", "proton", "wrapper"]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -19,7 +20,7 @@ classifiers = [
 rewire = "rewire.cli:main"
 
 [project.optional-dependencies]
-dev = ["pytest>=7"]
+dev = ["pytest>=7", "build>=1.2", "pyinstaller>=6"]
 
 [tool.setuptools.dynamic]
 version = {attr = "rewire.__version__"}
