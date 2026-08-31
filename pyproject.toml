@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rewire"
+dynamic = ["version"]
+description = "Intercepts Steam's %command% and replaces it with a configured command"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+keywords = ["steam", "proton", "wrapper"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+]
+
+[project.scripts]
+rewire = "rewire.cli:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[tool.setuptools.dynamic]
+version = {attr = "rewire.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["rewire*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
