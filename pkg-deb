@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PKGNAME=rewire
+PYTHON=${PYTHON:-$(command -v python3 || command -v python)}
+if [[ -x .venv/bin/python ]]; then
+    PYBUILD=.venv/bin/python
+else
+    PYBUILD=$PYTHON
+fi
+PKGVER=$($PYTHON -c "import sys; sys.path.insert(0, 'src'); import rewire; print(rewire.__version__)")
+BUILDDIR=.pkgdeb
+PACKAGE=$BUILDDIR/pkg
+VERSION=${1:-$PKGVER}
+ARCH=all
+
+if ! command -v dpkg-deb >/dev/null; then
+    echo "error: dpkg-deb not found (install: sudo apt install dpkg dpkg-dev)" >&2
+    exit 1
+fi
+
+rm -rf "$BUILDDIR"
+mkdir -p "$PACKAGE"
+$PYBUILD -m build --wheel --no-isolation
+$PYBUILD -m pip install --no-deps --prefix=/usr --root="$PACKAGE" dist/*.whl
+
+sed -i '1s|^#!.*|#!/usr/bin/python3|' "$PACKAGE/usr/bin/$PKGNAME"
+chmod +x "$PACKAGE/usr/bin/$PKGNAME"
+
+DEB=$PACKAGE/DEBIAN
+mkdir -p "$DEB"
+cat > "$DEB/control" <<EOF
+Package: $PKGNAME
+Version: $VERSION
+Architecture: $ARCH
+Maintainer: Mallor <mallor@users.noreply.github.com>
+Description: Intercepts Steam's %command% and replaces it with a configured command
+ Depends: python3 (>= 3.12)
+Section: utils
+Priority: optional
+EOF
+
+dpkg-deb --build --root-owner-group "$PACKAGE" "$BUILDDIR/${PKGNAME}_${VERSION}_${ARCH}.deb"
+echo "Built $BUILDDIR/${PKGNAME}_${VERSION}_${ARCH}.deb"

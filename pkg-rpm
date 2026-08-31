@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PKGNAME=rewire
+PYTHON=${PYTHON:-$(command -v python3 || command -v python)}
+if [[ -x .venv/bin/python ]]; then
+    PYBUILD=.venv/bin/python
+else
+    PYBUILD=$PYTHON
+fi
+PKGVER=$($PYTHON -c "import sys; sys.path.insert(0, 'src'); import rewire; print(rewire.__version__)")
+VERSION=${1:-$PKGVER}
+RELEASE=1
+RPMARCH=noarch
+RPMROOT=$HOME/rpmbuild
+SPECFILE=$PKGNAME.spec
+WORKDIR=.pkgrpm
+
+if ! command -v rpmbuild >/dev/null; then
+    echo "error: rpmbuild not found (install: sudo dnf install rpm-build)" >&2
+    exit 1
+fi
+
+mkdir -p "$RPMROOT"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+rm -rf "$WORKDIR"
+mkdir -p "$WORKDIR"
+
+cat > "$WORKDIR/$SPECFILE" <<EOF
+Name:           $PKGNAME
+Version:        $VERSION
+Release:        $RELEASE
+Summary:        Intercepts Steam's %command% and replaces it with a configured command
+License:        GPL-3.0-or-later
+URL:            https://github.com/mall0r/Rewire
+Source0:        %{name}-%{version}.tar.gz
+BuildArch:      $RPMARCH
+BuildRequires:  python3-devel python3-pip python3-build python3-setuptools python3-wheel
+Requires:       python3 >= 3.12
+
+%description
+Intercepts Steam's %command% and replaces it with a configured command.
+
+%prep
+%setup -q -n %{name}-%{version}
+
+%build
+python3 -m build --wheel --no-isolation
+
+%install
+python3 -m pip install --no-deps --prefix=/usr --root=%{buildroot} dist/*.whl
+
+%files
+/usr/bin/%{name}
+%{python3_sitelib}/%{name}
+%{python3_sitelib}/%{name}-%{version}.dist-info/
+
+%changelog
+* $(LC_ALL=C date '+%a %b %d %Y') Mallor <mallor@users.noreply.github.com> - $VERSION-$RELEASE
+- Initial RPM packaging
+EOF
+
+$PYBUILD -m build --sdist --no-isolation
+cp "dist/${PKGNAME}-${VERSION}.tar.gz" "$RPMROOT/SOURCES/"
+mkdir -p "$RPMROOT/SPECS"
+cp "$WORKDIR/$SPECFILE" "$RPMROOT/SPECS/"
+
+rpmbuild -bb "$RPMROOT/SPECS/$SPECFILE"
+
+OUT="$RPMROOT/RPMS/$RPMARCH/${PKGNAME}-${VERSION}-${RELEASE}.${RPMARCH}.rpm"
+mkdir -p "$WORKDIR"
+cp "$OUT" "$WORKDIR/"
+echo "Built $WORKDIR/${PKGNAME}-${VERSION}-${RELEASE}.${RPMARCH}.rpm"

@@ -1,13 +1,13 @@
 # Maintainer: Mallor <mallor@users.noreply.github.com>
 
 pkgname=rewire
-pkgver=0.1.1
+pkgver=0.1.2
 pkgrel=1
 pkgdesc="Intercepts Steam's %command% and replaces it with a configured command"
 arch=('any')
 url="https://github.com/mall0r/Rewire"
 license=('GPL-3.0-or-later')
-depends=('python>=3.14')
+depends=('python>=3.12')
 makedepends=('python-build' 'python-installer' 'python-wheel' 'python-pip' 'python-setuptools')
 source=("$pkgname-$pkgver.tar.gz")
 sha256sums=('SKIP')

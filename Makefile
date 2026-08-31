@@ -1,9 +1,12 @@
-.PHONY: dev test build binary pkg-arch clean
+.PHONY: dev test build binary pkg-arch pkg-deb pkg-rpm clean
 
 BUILDDIR := .pkgbuild
 
+PYTHON ?= $(shell command -v python3 2>/dev/null || command -v python 2>/dev/null)
+VERSION := $(shell $(PYTHON) -c "import sys; sys.path.insert(0, 'src'); import rewire; print(rewire.__version__)")
+
 dev:
-	python -m venv .venv
+	$(PYTHON) -m venv .venv
 	.venv/bin/pip install -e ".[dev]"
 
 test: dev
@@ -18,8 +21,14 @@ binary: test
 pkg-arch: build
 	rm -rf $(BUILDDIR)
 	mkdir -p $(BUILDDIR)
-	cp PKGBUILD dist/rewire-0.1.1.tar.gz $(BUILDDIR)/
+	cp PKGBUILD dist/rewire-$(VERSION).tar.gz $(BUILDDIR)/
 	cd $(BUILDDIR) && makepkg -f -C
+
+pkg-deb: build
+	PYTHON="$(PYTHON)" ./pkg-deb
+
+pkg-rpm: build
+	PYTHON="$(PYTHON)" ./pkg-rpm
 
 clean:
 	pkill -f "rewire" -x || true
