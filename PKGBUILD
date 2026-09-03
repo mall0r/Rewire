@@ -1,7 +1,7 @@
 # Maintainer: Mallor <mallor@users.noreply.github.com>
 
 pkgname=rewire
-pkgver=0.1.2
+pkgver=0.1.3
 pkgrel=1
 pkgdesc="Intercepts Steam's %command% and replaces it with a configured command"
 arch=('any')

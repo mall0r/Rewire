@@ -7,6 +7,11 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ## [Não publicado]
 
+## [0.1.3] - 2026-09-03
+
+### Corrigido
+- `build_final_args` poupava erroneamente opções do launcher (como `--oom-score-adjust` do Proton) ao montar a linha de comando final
+
 ## [0.1.2] - 2026-08-31
 
 ### Adicionado

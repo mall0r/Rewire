@@ -69,7 +69,7 @@ def build_final_args(
         dash = next((i for i, t in enumerate(post_reaper) if t == "--"), None)
         if dash is not None:
             head = post_reaper[: dash + 1]  # reaper ... -- (first "--")
-            launcher = original[0:2]  # steam-launch-wrapper -- (pattern at start)
+            launcher = original[0:reaper_idx]  # steam-launch-wrapper [opts...] --
             middle = original[reaper_idx + dash + 1 : w_idx + 1]
             return head + launcher + middle + replacement_args, target
 

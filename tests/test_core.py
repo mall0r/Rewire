@@ -66,6 +66,30 @@ class TestBuildFinalArgs:
         assert final == original[:10] + replacement
         assert replaced == ["old_game"]
 
+    def test_proton_oom_score_adjust_preserved(self):
+        original = [
+            "steam-launch-wrapper",
+            "--oom-score-adjust",
+            "900",
+            "--",
+            "reaper",
+            "SteamLaunch",
+            "AppId=730",
+            "--",
+            "runtime/_v2-entry-point",
+            "--verb=waitforexitandrun",
+            "--",
+            "proton",
+            "waitforexitandrun",
+            "old_game",
+        ]
+        replacement = ["new_game"]
+        final, replaced = build_final_args(original, replacement)
+        assert "900" in final
+        assert "--oom-score-adjust" in final
+        assert final[-1] == "new_game"
+        assert replaced == ["old_game"]
+
     def test_empty_replacement_returns_original(self):
         original = ["old_game"]
         final, replaced = build_final_args(original, [])
