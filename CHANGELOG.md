@@ -1,42 +1,42 @@
 # Changelog
 
-Todos as mudanças notáveis neste projeto serão documentadas neste arquivo.
+All notable changes to this project will be documented in this file.
 
-O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
-e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Não publicado]
+## [Unreleased]
 
 ## [0.1.3] - 2026-09-03
 
-### Corrigido
-- `build_final_args` poupava erroneamente opções do launcher (como `--oom-score-adjust` do Proton) ao montar a linha de comando final
+### Fixed
+- `build_final_args` was incorrectly dropping launcher options (such as Proton's `--oom-score-adjust`) when assembling the final command line
 
 ## [0.1.2] - 2026-08-31
 
-### Adicionado
-- Empacotamento Debian/Ubuntu via script `pkg-deb` e `dpkg-deb` (`make pkg-deb`)
-- Empacotamento RPM (Fedora/RHEL/openSUSE) via script `pkg-rpm` e `rpmbuild` (`make pkg-rpm`)
-- Makefile: detecção de `PYTHON` e versão derivada automaticamente de `__init__.py`; alvos `pkg-deb` e `pkg-rpm`
+### Added
+- Debian/Ubuntu packaging via `pkg-deb` script and `dpkg-deb` (`make pkg-deb`)
+- RPM packaging (Fedora/RHEL/openSUSE) via `pkg-rpm` script and `rpmbuild` (`make pkg-rpm`)
+- Makefile: automatic `PYTHON` detection and version derivation from `__init__.py`; `pkg-deb` and `pkg-rpm` targets
 
 ## [0.1.1] - 2026-08-31
 
-### Adicionado
-- Empacotamento para Arch Linux via PKGBUILD e Makepkg (`make pkg-arch`)
-- Empacotamento binário via PyInstaller (`make binary`)
-- Makefile com alvos `dev`, `test`, `build`, `binary`, `pkg-arch` e `clean`
-- Licença GPL-3.0-or-later e exigência de Python >= 3.12
+### Added
+- Arch Linux packaging via PKGBUILD and Makepkg (`make pkg-arch`)
+- Binary packaging via PyInstaller (`make binary`)
+- Makefile with `dev`, `test`, `build`, `binary`, `pkg-arch` and `clean` targets
+- GPL-3.0-or-later license and Python >= 3.12 requirement
 
-### Corrigido
-- `make clean` interrompido pelo `pkill -f "rewire"` que também matava o processo do Makefile
+### Fixed
+- `make clean` interrupted by `pkill -f "rewire"` which also killed the Makefile process
 
 ## [0.1.0] - 2026-08-31
 
-### Adicionado
-- Intercepta `%command%` da Steam e substitui o executável conforme configuração
-- Suporte a Proton (substitui apenas o alvo após `waitforexitandrun`)
-- Suporte a jogos nativos (substitui o comando inteiro)
-- Arquivo de configuração INI em `~/.config/rewire/rewire.conf`
-- Logging detalhado em `~/.cache/rewire/rewire.log`
-- Variáveis de ambiente configuráveis: `REWIRE_LOG`, `REWIRE_LOG_LEVEL`
-- Entry point `rewire` para uso em opções de inicialização da Steam
+### Added
+- Intercepts Steam's `%command%` and replaces the executable based on configuration
+- Proton support (replaces only the target after `waitforexitandrun`)
+- Native game support (replaces the entire command)
+- INI configuration file at `~/.config/rewire/rewire.conf`
+- Detailed logging to `~/.cache/rewire/rewire.log`
+- Configurable environment variables: `REWIRE_LOG`, `REWIRE_LOG_LEVEL`
+- `rewire` entry point for use in Steam launch options

@@ -1,109 +1,101 @@
+<p align="right">
+  <a href="https://github.com/mall0r/Rewire/blob/main/README.md"><img src="https://img.shields.io/badge/en-US-darkblue.svg" alt="English"/></a>
+  <a href="https://github.com/mall0r/Rewire/blob/main/docs/README.pt-BR.md"><img src="https://img.shields.io/badge/pt-BR-darkgreen.svg" alt="Portuguese"/></a>
+</p>
+
 # Rewire
 
-Wrapper simples em Python que intercepta o `%command%` da Steam e troca o
-executável final por um configurado. Em jogos via Proton, mantém todo o
-arcabouço (reaper, runtime, proton, `waitforexitandrun`) intacto e substitui
-apenas o alvo que segue o último `waitforexitandrun`.
+Intercepta a opção de lançamento `%command%` do Steam e a substitui por um comando configurado, por jogo.
+
+## Sobre
+
+Rewire é um utilitário Linux que se conecta ao mecanismo da opção de lançamento `%command%` do Steam e substitui o executável do jogo por um comando configurado pelo usuário. Ele suporta tanto **jogos Proton (Windows)** quanto **jogos nativos Linux**, preservando inteligentemente a estrutura do Proton quando necessário.
+
+## Recursos
+
+- **Configuração por jogo** — cada jogo (pelo Steam App ID) tem sua própria seção no arquivo de configuração
+- **Reescrita de comando ciente de Proton** — preserva `reaper`, `steam-launch-wrapper`, pontos de entrada do runtime e outros argumentos de lançador, substituindo apenas o executável de destino
+- **Suporte a jogos nativos Linux** — substitui o comando inteiro pela configuração do usuário
+
+## Requisitos
+
+- Python >= 3.12
 
 ## Instalação
 
-1. Instale o pacote. Para desenvolvimento (editable):
+### Arch Linux (via AUR)
 
-   ```bash
-   pip install -e ".[dev]"
-   ```
-
-   Ou para instalação normal: `pip install . `. Isso disponibiliza o entry
-   point `rewire` no seu PATH.
-
-## Compilar pacote nativo da distro
-
-O `Makefile` detecta a distro atual (via `/etc/os-release`) e gera o pacote
-**nativo** adequado (`.pkg.tar.zst` no Arch, `.deb` no Debian/Ubuntu, `.rpm` no
-Fedora/RHEL/openSUSE):
-
-```bash
-make                # gera o pacote nativo para a distro atual
-make install        # gera e instala no sistema (pede sudo)
-make wheel          # gera wheel + sdist do Python em dist/
-make info           # mostra a distro detectada e as ferramentas disponíveis
-make clean          # remove os artefatos de build
-make help           # mostra todos os alvos
+```sh
+yay -S rewire
 ```
 
-O empacotamento nativo exige as ferramentas de build da distro (instalar uma
-vez):
+### Arch Linux (via Release)
 
-| Família de distro | Pacotes necessários |
-|---|---|
-| Arch (CachyOS, Manjaro…) | `base-devel python-build python-installer python-setuptools python-wheel` |
-| Debian/Ubuntu | `dpkg dpkg-dev python3-pip` |
-| Fedora/RHEL/openSUSE | `rpm-build python3-pip` |
+Baixe o pacote `.pkg.tar.zst` da página de [Releases](https://github.com/mall0r/Rewire/releases) e instale:
 
-> Nota: os scripts `.deb`/`.rpm` geram o wheel do Python internamente, então
-> também precisam de `pip` (`python3-pip`).
+```sh
+sudo pacman -U ./rewire-0.1.3-1-any.pkg.tar.zst
+```
 
+### Debian / Ubuntu
+
+Baixe o pacote `.deb` da página de [Releases](https://github.com/mall0r/Rewire/releases) e instale:
+
+```sh
+sudo apt install ./rewire_0.1.3_all.deb
+```
+
+### Fedora / RHEL / openSUSE
+
+Baixe o pacote `.rpm` da página de [Releases](https://github.com/mall0r/Rewire/releases) e instale:
+
+```sh
+# Fedora
+sudo dnf install ./rewire-0.1.3-1.noarch.rpm
+```
+
+### Outros sistemas
+
+Baixe o binário standalone da página de [Releases](https://github.com/mall0r/Rewire/releases), torne-o executável e adicione-o ao seu `PATH`:
+
+```sh
+chmod +x rewire
+mkdir -p ~/.local/bin
+mv rewire ~/.local/bin/
+export PATH="$PATH:$HOME/.local/bin"
+```
+
+Para tornar a alteração do `PATH` permanente, adicione a linha `export` ao seu arquivo de configuração do shell:
+
+```sh
+echo 'export PATH="$PATH:$HOME/.local/bin"' >> ~/.bashrc   # bash
+echo 'export PATH="$PATH:$HOME/.local/bin"' >> ~/.zshrc    # zsh
+fish_add_path ~/.local/bin                                 # fish
+```
 
 ## Configuração
 
-Edite `~/.config/rewire/rewire.conf`. É um arquivo INI: cada seção é o
-**appid** de um jogo, e cada seção define um `command` (analisado com
-`shlex.split`, portanto aspas e `$VAR` funcionam). Exemplo:
+Crie o arquivo de configuração em `~/.config/rewire/rewire.conf`:
 
 ```ini
-[730]                   ; appid do CS:GO
-command = /path/to/another-executable --flag ~/.local/share/file
+[730]
+command = /caminho/para/minha/substituicao
 ```
 
-Para configurar um jogo, crie uma seção cujo **nome seja o appid** desse jogo.
-A Steam define `STEAM_COMPAT_APPID` / `SteamAppId`; o rewire lê e procura a
-seção correspondente.
+Cada seção corresponde a um Steam App ID. O valor `command` é o comando de substituição que será executado **no lugar do executável do jogo**. Não existe placeholder `%command%` — o que você definir é exatamente o que será executado.
 
-## Uso na Steam
+## Uso
 
-Nos **Argumentos de lançamento** do jogo:
+1. Abra o Steam e vá nas propriedades do jogo
+2. Em **Opções de Lançamento**, defina:
 
 ```
 rewire %command%
 ```
 
-No momento da execução:
+3. Configure o comando de substituição em `~/.config/rewire/rewire.conf`
+4. Inicie o jogo
 
-1. Detecta o appid do jogo.
-2. Se existir uma seção com esse appid, substitui o executável pelo `command`
-   dela.
-3. Caso contrário, executa o `%command%` original da Steam sem alterações.
+## Licença
 
-### Jogos via Proton
-
-Se o `%command%` passar por Proton (contém `waitforexitandrun`), apenas o
-**alvo** — o que vem depois do último `waitforexitandrun` — é substituído:
-
-```
-reaper SteamLaunch AppId=X -- steam-launch-wrapper -- runtime/_v2-entry-point
---verb=waitforexitandrun -- proton waitforexitandrun <SEU EXECUTÁVEL>
-```
-
-Para jogos nativos (sem Proton), o comando inteiro é substituído.
-
-> Nota: o `rewire` apenas troca o executável executado. Qualquer outra
-> personalização (env vars, MangoHud, prefixos) deve ir direto nos launch
-> options da Steam — o `%command%` já repassa tudo isso sem alteração.
-
-## Log detalhado
-
-O wrapper gera um log em `~/.cache/rewire/rewire.log` com timestamp e PID, e
-também no stderr. As linhas `EXEC` mostram o comando trocado para diagnóstico:
-
-```
-2026-08-31 12:13:53 [INFO] pid=36102 intercepted command: reaper SteamLaunch AppId=730 -- steam-launch-wrapper -- proton waitforexitandrun /path/to/old
-2026-08-31 12:13:53 [INFO] pid=36102 substitution [730]: /path/to/new
-2026-08-31 12:13:53 [INFO] pid=36102 EXEC: appid=730 intercepted='...' | sent='...' | replaced_target='/path/to/old'
-```
-
-Configurável por env vars:
-
-| Variável | Descrição | Padrão |
-|---|---|---|
-| `REWIRE_LOG` | Caminho do arquivo de log | `~/.cache/rewire/rewire.log` |
-| `REWIRE_LOG_LEVEL` | `DEBUG`, `INFO`, `WARNING`, `ERROR` | `DEBUG` |
+[GPL-3.0-or-later](../../LICENSE)

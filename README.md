@@ -1,85 +1,101 @@
+<p align="right">
+  <a href="https://github.com/mall0r/Rewire/blob/main/README.md"><img src="https://img.shields.io/badge/en-US-darkblue.svg" alt="English"/></a>
+  <a href="https://github.com/mall0r/Rewire/blob/main/docs/README.pt-BR.md"><img src="https://img.shields.io/badge/pt-BR-darkgreen.svg" alt="Portuguese"/></a>
+</p>
+
 # Rewire
 
-Simple Python wrapper that intercepts Steam's `%command%` and swaps the final
-executable for a configured one. For Proton games it keeps the whole
-scaffolding (reaper, runtime, proton, `waitforexitandrun`) intact and replaces
-only the target that follows the last `waitforexitandrun`.
+Intercepts Steam's `%command%` launch option and replaces it with a configured command, per game.
 
-> **Versionamento Semântico**: este projeto segue o
-> [SemVer](https://semver.org/lang/pt-BR/). Mudanças estão documentadas no
-> [CHANGELOG.md](CHANGELOG.md).
+## About
 
-## Instalação
+Rewire is a Linux utility that hooks into Steam's `%command%` launch option mechanism and replaces the game executable with a user-configured command. It supports both **Proton (Windows) games** and **native Linux games**, intelligently preserving the Proton scaffolding when needed.
 
-1. Install the package. For development (editable) use:
+## Features
 
-   ```bash
-   pip install -e ".[dev]"
-   ```
+- **Per-game configuration** — each game (by Steam App ID) gets its own section in the config file
+- **Proton-aware command rewriting** — preserves `reaper`, `steam-launch-wrapper`, runtime entry points, and other launcher arguments while only swapping the target executable
+- **Native Linux game support** — replaces the entire command with the configured replacement
 
-   Or for a regular install: `pip install . `. This provides the `rewire`
-   entry point on your PATH.
+## Requirements
 
-## Configuração
+- Python >= 3.12
 
-Edit `~/.config/rewire/rewire.conf`. It is an INI file: each section is a
-game's **appid**, and each section defines a `command` (parsed with
-`shlex.split`, so quotes and `$VAR` work). Example:
+## Installation
 
-```ini
-[730]                   ; CS:GO appid
-command = /path/to/another-executable --flag ~/.local/share/file
+### Arch Linux (via AUR)
+
+```sh
+yay -S rewire
 ```
 
-To target a game, create a section whose **name is that game's appid**. Steam
-sets `STEAM_COMPAT_APPID` / `SteamAppId`; rewire reads it and looks up the
-matching section.
+### Arch Linux (via Release)
 
-## Uso na Steam
+Download the `.pkg.tar.zst` package from the [Releases](https://github.com/mall0r/Rewire/releases) page and install it:
 
-In the game's **Launch options**:
+```sh
+sudo pacman -U ./rewire-0.1.3-1-any.pkg.tar.zst
+```
+
+### Debian / Ubuntu
+
+Download the `.deb` package from the [Releases](https://github.com/mall0r/Rewire/releases) page and install it:
+
+```sh
+sudo apt install ./rewire_0.1.3_all.deb
+```
+
+### Fedora
+
+Download the `.rpm` package from the [Releases](https://github.com/mall0r/Rewire/releases) page and install it:
+
+```sh
+# Fedora
+sudo dnf install ./rewire-0.1.3-1.noarch.rpm
+```
+
+### Other systems
+
+Download the standalone binary from the [Releases](https://github.com/mall0r/Rewire/releases) page, make it executable and add it to your `PATH`:
+
+```sh
+chmod +x rewire
+mkdir -p ~/.local/bin
+mv rewire ~/.local/bin/
+export PATH="$PATH:$HOME/.local/bin"
+```
+
+To make the `PATH` change permanent, add the `export` line to your shell config:
+
+```sh
+echo 'export PATH="$PATH:$HOME/.local/bin"' >> ~/.bashrc   # bash
+echo 'export PATH="$PATH:$HOME/.local/bin"' >> ~/.zshrc    # zsh
+fish_add_path ~/.local/bin                                 # fish
+```
+
+## Configuration
+
+Create the configuration file at `~/.config/rewire/rewire.conf`:
+
+```ini
+[730]
+command = /path/to/my/replacement
+```
+
+Each section corresponds to a Steam App ID. The `command` value is the replacement command that will be run **in place of the game executable**. There is no `%command%` placeholder — what you set is exactly what gets executed.
+
+## Usage
+
+1. Open Steam and go to the game's properties
+2. In **Launch Options**, set:
 
 ```
 rewire %command%
 ```
 
-At runtime:
+3. Configure the replacement command in `~/.config/rewire/rewire.conf`
+4. Launch the game
 
-1. Detect the game's appid.
-2. If a section with that appid exists, replace the executable with its
-   `command`.
-3. Otherwise, run Steam's original `%command%` unchanged.
+## License
 
-### Jogos via Proton
-
-If `%command%` goes through Proton (contains `waitforexitandrun`), only the
-**target** — what comes after the last `waitforexitandrun` — is replaced:
-
-```
-reaper SteamLaunch AppId=X -- steam-launch-wrapper -- runtime/_v2-entry-point
---verb=waitforexitandrun -- proton waitforexitandrun <SEU EXECUTÁVEL>
-```
-
-For native games (no Proton), the entire command is replaced.
-
-> Note: `rewire` only swaps the executed target. Any other customization
-> (env vars, MangoHud, prefix commands) should be added directly to the Steam
-> launch options — `%command%` already forwards those unchanged.
-
-## Log detalhado
-
-The wrapper logs to `~/.cache/rewire/rewire.log` with timestamp and PID, and to
-stderr. The `EXEC` lines show the swapped command for diagnosis:
-
-```
-2026-08-31 12:13:53 [INFO] pid=36102 intercepted command: reaper SteamLaunch AppId=730 -- steam-launch-wrapper -- proton waitforexitandrun /path/to/old
-2026-08-31 12:13:53 [INFO] pid=36102 substitution [730]: /path/to/new
-2026-08-31 12:13:53 [INFO] pid=36102 EXEC: appid=730 intercepted='...' | sent='...' | replaced_target='/path/to/old'
-```
-
-Configurable via env vars:
-
-| Variável | Descrição | Padrão |
-|---|---|---|
-| `REWIRE_LOG` | Caminho do arquivo de log | `~/.cache/rewire/rewire.log` |
-| `REWIRE_LOG_LEVEL` | `DEBUG`, `INFO`, `WARNING`, `ERROR` | `DEBUG` |
+[GPL-3.0-or-later](LICENSE)
